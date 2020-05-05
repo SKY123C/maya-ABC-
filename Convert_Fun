@@ -1,0 +1,40 @@
+def Convert_Fun(self):
+    # 获取当前选择
+    sel = cmds.ls(sl=True,fl=True)
+
+    # 循环当前选择
+    for obj in sel:
+
+        # 获取SG节点
+        shapeNode = cmds.listRelatives(obj,children=True,shapes=True)
+
+        SGNodeList = cmds.listConnections(shapeNode[0],type="shadingEngine")
+
+        SGNodeList = list(set(SGNodeList))
+
+        # 循环SG节点
+        for SGNode in SGNodeList:
+            # 通过SG节点获取材质球
+            shader = cmds.listConnections(SGNode + ".surfaceShader")
+
+            cmds.select(cl=True)
+            
+            # 选择材质球赋予的物体
+            cmds.hyperShade( objects=shader[0] )
+
+            # 将当前选择转换为面
+            cmds.ConvertSelectionToFaces()
+
+            faceList = cmds.ls(sl=True,fl=True)
+          
+            cmds.sets(cl=(shader[0]+"SG"))
+
+            # 循环材质上的面重新赋予材质
+            for face in faceList :
+                if obj == face.split('.')[0]:
+                    cmds.select(face)
+                    cmds.sets(add=(shader[0]+"SG"))
+
+    mel.eval("maintainActiveChangeSelectMode " + sel[-1] + ";")
+    cmds.select(cl=True)
+    cmds.headsUpMessage( u'转换成功' )
